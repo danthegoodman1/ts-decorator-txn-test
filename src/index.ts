@@ -182,23 +182,26 @@ class MyThing extends FlushableCls {
   age!: number
 
   @Transactional
-  async doWork(txn: any) {
-    console.log("[doWork] current name", await (this as any).name)
+  async doWork() {
+    const txn = getCurrentTransaction()
+    console.log("[doWork] current name", await (this as any).name + "in txn " + txn?.id)
     ;(this as any).name = "John"
-    console.log("[doWork] new name", await (this as any).name)
+    console.log("[doWork] new name", await (this as any).name + "in txn " + txn?.id)
     // Returns successfully, the property will be updated in the remote backend
   }
 
   @Transactional
-  async readValue(txn: any) {
-    console.log("[readValue] current name", await (this as any).name)
+  async readValue() {
+    const txn = getCurrentTransaction()
+    console.log("[readValue] current name", await (this as any).name + "in txn " + txn?.id)
   }
 
   @Transactional
-  async moreWork(txn: any) {
-    console.log("[moreWork] current name", await (this as any).name)
+  async moreWork() {
+    const txn = getCurrentTransaction()
+    console.log("[moreWork] current name", await (this as any).name + "in txn " + txn?.id)
     ;(this as any).name = "Jane"
-    console.log("[moreWork] new name", await (this as any).name)
+    console.log("[moreWork] new name", await (this as any).name + "in txn " + txn?.id)
     throw new Error("oops")
     // Returns unsuccessfully, the property will not be updated in the remote backend
   }
@@ -208,21 +211,21 @@ class MyThing extends FlushableCls {
 let thing = new MyThing()
 
 // 2. Call doWork
-await thing.doWork(null)
-await thing.readValue(null)
+await thing.doWork()
+await thing.readValue()
 
 // 3. Create a new instance of MyThing, see value still there
 thing = new MyThing()
-await thing.readValue(null)
+await thing.readValue()
 
 // 4. Call moreWork, see value not updated (transaction fails, no flush)
 try {
   thing = new MyThing()
-  await thing.moreWork(null)
+  await thing.moreWork()
 } catch (error) {
   console.log("(expected) error", error)
 }
 
 // 5. Call readValue to see value not updated (since moreWork failed)
 thing = new MyThing()
-await thing.readValue(null)
+await thing.readValue()
