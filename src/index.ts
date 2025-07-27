@@ -161,6 +161,7 @@ function getCurrentTransaction() {
   return transactionContext.getStore()
 }
 
+// TODO: maybe move this into the Transactional decorator?
 class FlushableCls {
   async flush() {
     const q: any[] = (this as any)[PENDING] || []
